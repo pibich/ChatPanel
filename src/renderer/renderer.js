@@ -14,12 +14,14 @@ const defaultSettings = {
   compactMode: false,
   textOutline: true,
   hideBots: true,
-  botList: 'Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Wizebot, Stay_Hydrated_Bot',
+  botList:
+    'Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Wizebot, Stay_Hydrated_Bot, BotRix, PhantomBot, Sery_Bot, PokemonCommunityGame, SoundAlerts',
   hideCommands: true,
   soundSuperchat: true,
   soundChat: false,
   lastStreamUrl: '',
-  lastTiktokUrl: ''
+  lastTiktokUrl: '',
+  lastTwitchUrl: ''
 };
 
 let settings = loadSettings();
@@ -27,7 +29,13 @@ let allMessages = [];
 let activeFilter = 'all'; // 'all' | 'vip' | 'superchat'
 let platformStates = {
   youtube: { state: 'disconnected', channelTitle: '', message: 'Belum Terhubung' },
-  tiktok: { state: 'disconnected', channelTitle: '', message: 'Belum Terhubung' }
+  tiktok: { state: 'disconnected', channelTitle: '', message: 'Belum Terhubung' },
+  twitch: { state: 'disconnected', channelTitle: '', message: 'Belum Terhubung' }
+};
+let platformStats = {
+  youtube: { viewerCount: 0, likeCount: 0 },
+  tiktok: { viewerCount: 0 },
+  twitch: { viewerCount: 0 }
 };
 let isAutoScrollPaused = false;
 let unreadWhilePaused = 0;
@@ -59,9 +67,38 @@ const tiktokInput = document.getElementById('tiktokInput');
 const btnConnectTiktok = document.getElementById('btnConnectTiktok');
 const ttStatusText = document.getElementById('ttStatusText');
 
+const twitchInput = document.getElementById('twitchInput');
+const btnConnectTwitch = document.getElementById('btnConnectTwitch');
+const twStatusText = document.getElementById('twStatusText');
+
+const totalViewerCountEl = document.getElementById('totalViewerCount');
+const platformViewerBadgesEl = document.getElementById('platformViewerBadges');
+const ytLikeCountEl = document.getElementById('ytLikeCount');
+const ytLikeBadgeEl = document.getElementById('ytLikeBadge');
+
 const btnOpenConnect = document.getElementById('btnOpenConnect');
 const btnClearChat = document.getElementById('btnClearChat');
 const filterPills = document.querySelectorAll('.filter-pill');
+const settingsTabs = document.querySelectorAll('.settings-tab');
+const settingsPanes = document.querySelectorAll('.settings-pane');
+
+// Log & Error Toast Elements
+const logErrorBadge = document.getElementById('logErrorBadge');
+const logEmptyState = document.getElementById('logEmptyState');
+const logEntriesList = document.getElementById('logEntriesList');
+const btnCopyLogs = document.getElementById('btnCopyLogs');
+const btnOpenLogFile = document.getElementById('btnOpenLogFile');
+const btnClearLogs = document.getElementById('btnClearLogs');
+
+const errorToast = document.getElementById('errorToast');
+const toastTitle = document.getElementById('toastTitle');
+const toastTime = document.getElementById('toastTime');
+const toastMessage = document.getElementById('toastMessage');
+const btnViewLogFromToast = document.getElementById('btnViewLogFromToast');
+const btnCloseToast = document.getElementById('btnCloseToast');
+
+let diagnosticLogs = [];
+let toastTimer = null;
 
 const pinnedMessageBar = document.getElementById('pinnedMessageBar');
 const pinnedMessageContent = document.getElementById('pinnedMessageContent');
@@ -140,6 +177,9 @@ function applySettingsToUI() {
   if (settings.lastTiktokUrl && tiktokInput && !tiktokInput.value) {
     tiktokInput.value = settings.lastTiktokUrl;
   }
+  if (settings.lastTwitchUrl && twitchInput && !twitchInput.value) {
+    twitchInput.value = settings.lastTwitchUrl;
+  }
 
   appEl.classList.toggle('hide-avatars', !settings.showAvatars);
   appEl.classList.toggle('hide-timestamps', !settings.showTimestamp);
@@ -189,23 +229,93 @@ function playTone(type = 'chat') {
 
 // ==================== BOT & MESSAGE FILTERING ====================
 
-function getBlockedBotsSet() {
-  return new Set(
-    (settings.botList || '')
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean)
-  );
+// Built-in popular bots across YouTube, TikTok & Twitch so they are always caught when Hide Bots is enabled
+const BUILTIN_KNOWN_BOTS = [
+  'nightbot',
+  'streamelements',
+  'moobot',
+  'streamlabs',
+  'fossabot',
+  'wizebot',
+  'stay_hydrated_bot',
+  'botrix',
+  'botrixoficial',
+  'phantombot',
+  'sery_bot',
+  'pokemoncommunitygame',
+  'soundalerts',
+  'kofistreambot',
+  'own3d',
+  'pretzelrocks',
+  'songlistbot',
+  'lurkxx',
+  'creatisbot',
+  'frostytoolsdotcom',
+  ' Kickbot'
+];
+
+function normalizeBotHandle(str) {
+  return String(str || '')
+    .normalize('NFKD')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Strip zero-width spaces
+    .trim()
+    .replace(/^@+/, '') // Strip leading @
+    .toLowerCase();
+}
+
+function normalizeBotAlnum(str) {
+  return normalizeBotHandle(str).replace(/[\s_.-]+/g, '');
+}
+
+function getBlockedBotPatterns() {
+  const userEntries = (settings.botList || '')
+    .split(/[,;\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const combined = [...BUILTIN_KNOWN_BOTS, ...userEntries];
+  const exactHandles = new Set();
+  const alnumHandles = new Set();
+
+  for (const item of combined) {
+    const clean = normalizeBotHandle(item);
+    const alnum = normalizeBotAlnum(item);
+    if (clean) exactHandles.add(clean);
+    if (alnum) alnumHandles.add(alnum);
+  }
+
+  return { exactHandles, alnumHandles };
+}
+
+function isBotAuthor(msg) {
+  const { exactHandles, alnumHandles } = getBlockedBotPatterns();
+  const candidates = [msg.authorName, msg.authorUsername].filter(Boolean);
+
+  for (const rawName of candidates) {
+    const clean = normalizeBotHandle(rawName);
+    const alnum = normalizeBotAlnum(rawName);
+    if (!clean) continue;
+
+    // 1. Direct match on normalized handle or alphanumeric-collapsed handle
+    if (exactHandles.has(clean) || (alnum && alnumHandles.has(alnum))) {
+      return true;
+    }
+
+    // 2. Substring / prefix match for bots with suffixes like "Nightbot [Mod]", "StreamElements_Bot"
+    for (const botAlnum of alnumHandles) {
+      if (botAlnum.length >= 5 && alnum.includes(botAlnum)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function shouldDisplayMessage(msg) {
-  // 1. Check Bot Filter
-  if (settings.hideBots) {
-    const authorLower = (msg.authorName || '').trim().toLowerCase();
-    const bots = getBlockedBotsSet();
-    if (bots.has(authorLower)) {
-      return false;
-    }
+  // 1. Check Bot Filter FIRST (applies even if the bot has Moderator / VIP badge!)
+  if (settings.hideBots && isBotAuthor(msg)) {
+    return false;
   }
 
   // 2. Check Command Filter (!command)
@@ -255,12 +365,14 @@ function createAvatarDataUri(name) {
 
 function createPlatformIcon(platform) {
   const span = document.createElement('span');
-  const plat = platform === 'tiktok' ? 'tiktok' : 'youtube';
+  const plat = platform === 'tiktok' ? 'tiktok' : platform === 'twitch' ? 'twitch' : 'youtube';
   span.className = `platform-mini-icon plat-${plat}`;
-  span.title = plat === 'tiktok' ? 'TikTok Live' : 'YouTube Live';
+  span.title = plat === 'tiktok' ? 'TikTok Live' : plat === 'twitch' ? 'Twitch Live' : 'YouTube Live';
 
   if (plat === 'tiktok') {
     span.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`;
+  } else if (plat === 'twitch') {
+    span.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>`;
   } else {
     span.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.56A3.02 3.02 0 0 0 .5 6.2 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.8 3.02 3.02 0 0 0 2.12 2.14c1.88.56 9.38.56 9.38.56s7.5 0 9.38-.56a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.8zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg>`;
   }
@@ -300,11 +412,16 @@ function createChatElement(msg) {
     item.classList.add(`type-${msg.type}`);
   }
 
-  // Super Chat / TikTok Gift Top Banner
+  // Super Chat / TikTok Gift / Twitch Cheer Top Banner
   if (msg.type === 'superchat' || msg.type === 'supersticker') {
     const banner = document.createElement('div');
     banner.className = 'superchat-banner';
-    const label = msg.platform === 'tiktok' ? '🎁 TIKTOK GIFT' : '★ SUPER CHAT';
+    const label =
+      msg.platform === 'tiktok'
+        ? '🎁 TIKTOK GIFT'
+        : msg.platform === 'twitch'
+        ? '💎 TWITCH CHEER'
+        : '★ SUPER CHAT';
     banner.innerHTML = `<span>${label}</span><span>${escapeHtml(msg.purchaseAmount || 'DONASI')}</span>`;
     item.appendChild(banner);
   }
@@ -592,6 +709,23 @@ async function triggerConnectTiktok() {
   await window.chatPanelAPI.connectChat('tiktok', target);
 }
 
+// Connect / Disconnect Twitch Live
+async function triggerConnectTwitch() {
+  if (platformStates.twitch.state === 'connected' || platformStates.twitch.state === 'connecting') {
+    await window.chatPanelAPI.disconnectChat('twitch');
+    return;
+  }
+  const target = twitchInput.value.trim();
+  if (!target) {
+    twStatusText.textContent = 'Masukkan username Twitch dulu';
+    twitchInput.focus();
+    return;
+  }
+  settings.lastTwitchUrl = target;
+  saveSettings();
+  await window.chatPanelAPI.connectChat('twitch', target);
+}
+
 btnConnect.addEventListener('click', triggerConnectYoutube);
 streamUrlInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') triggerConnectYoutube();
@@ -603,6 +737,15 @@ if (btnConnectTiktok) {
 if (tiktokInput) {
   tiktokInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') triggerConnectTiktok();
+  });
+}
+
+if (btnConnectTwitch) {
+  btnConnectTwitch.addEventListener('click', triggerConnectTwitch);
+}
+if (twitchInput) {
+  twitchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') triggerConnectTwitch();
   });
 }
 
@@ -626,10 +769,33 @@ filterPills.forEach((pill) => {
 
 // ==================== SETTINGS LISTENERS ====================
 
+function switchSettingsTab(targetTabId) {
+  settingsTabs.forEach((tab) => {
+    const isMatch = tab.dataset.tab === targetTabId;
+    tab.classList.toggle('active', isMatch);
+    tab.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+  });
+  settingsPanes.forEach((pane) => {
+    const isMatch = pane.id === targetTabId;
+    pane.classList.toggle('hidden', !isMatch);
+    pane.classList.toggle('active', isMatch);
+  });
+  if (targetTabId === 'tabLogs' && logErrorBadge) {
+    logErrorBadge.classList.add('hidden');
+  }
+}
+
+settingsTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    switchSettingsTab(tab.dataset.tab);
+  });
+});
+
 function openSettingsDrawer(focusStreamInput = false) {
   settingsDrawer.classList.remove('hidden');
   btnSettings.classList.add('active');
   if (focusStreamInput) {
+    switchSettingsTab('tabConnect');
     setTimeout(() => streamUrlInput.focus(), 50);
   }
 }
@@ -719,24 +885,75 @@ chkSoundChat.addEventListener('change', (e) => {
 
 // ==================== IPC EVENT LISTENERS ====================
 
+function formatNumberCount(num) {
+  const n = Number(num) || 0;
+  return n.toLocaleString('id-ID');
+}
+
+let lastRenderedLikes = 0;
+
+function updateLiveStatsUI() {
+  const ytViewers = Number(platformStats.youtube.viewerCount) || 0;
+  const ttViewers = Number(platformStats.tiktok.viewerCount) || 0;
+  const twViewers = Number(platformStats.twitch.viewerCount) || 0;
+  const totalViewers = ytViewers + ttViewers + twViewers;
+
+  if (totalViewerCountEl) {
+    totalViewerCountEl.textContent = formatNumberCount(totalViewers);
+  }
+
+  if (platformViewerBadgesEl) {
+    platformViewerBadgesEl.innerHTML = '';
+    const activeBadges = [];
+    if (platformStates.youtube.state === 'connected' || ytViewers > 0) {
+      activeBadges.push({ cls: 'yt', label: 'YT', val: ytViewers });
+    }
+    if (platformStates.tiktok.state === 'connected' || ttViewers > 0) {
+      activeBadges.push({ cls: 'tt', label: 'TT', val: ttViewers });
+    }
+    if (platformStates.twitch.state === 'connected' || twViewers > 0) {
+      activeBadges.push({ cls: 'tw', label: 'TW', val: twViewers });
+    }
+
+    for (const b of activeBadges) {
+      const pill = document.createElement('span');
+      pill.className = `plat-viewer-pill ${b.cls}`;
+      pill.textContent = `${b.label} ${formatNumberCount(b.val)}`;
+      platformViewerBadgesEl.appendChild(pill);
+    }
+  }
+
+  if (ytLikeCountEl) {
+    const likes = Number(platformStats.youtube.likeCount) || 0;
+    ytLikeCountEl.textContent = formatNumberCount(likes);
+    if (ytLikeBadgeEl && likes !== lastRenderedLikes && likes > 0) {
+      lastRenderedLikes = likes;
+      ytLikeBadgeEl.classList.add('pulse-like');
+      setTimeout(() => ytLikeBadgeEl.classList.remove('pulse-like'), 500);
+    }
+  }
+}
+
 function refreshGlobalStatusHeader() {
   const yt = platformStates.youtube;
   const tt = platformStates.tiktok;
+  const tw = platformStates.twitch;
 
-  const isYtLive = yt.state === 'connected';
-  const isTtLive = tt.state === 'connected';
-  const isAnyConnecting = yt.state === 'connecting' || tt.state === 'connecting';
-  const isAnyError = yt.state === 'error' || tt.state === 'error';
+  const activeTags = [];
+  if (yt.state === 'connected') activeTags.push({ code: 'YT', title: yt.channelTitle });
+  if (tt.state === 'connected') activeTags.push({ code: 'TT', title: tt.channelTitle });
+  if (tw.state === 'connected') activeTags.push({ code: 'TW', title: tw.channelTitle });
 
-  if (isYtLive && isTtLive) {
+  const isAnyConnecting =
+    yt.state === 'connecting' || tt.state === 'connecting' || tw.state === 'connecting';
+  const isAnyError = yt.state === 'error' || tt.state === 'error' || tw.state === 'error';
+
+  if (activeTags.length > 1) {
     statusDot.className = 'status-dot connected';
-    statusText.textContent = 'YT + TT Live';
-  } else if (isYtLive) {
+    statusText.textContent = `${activeTags.map((a) => a.code).join(' + ')} Live`;
+  } else if (activeTags.length === 1) {
     statusDot.className = 'status-dot connected';
-    statusText.textContent = `YT: ${yt.channelTitle || 'Live'}`;
-  } else if (isTtLive) {
-    statusDot.className = 'status-dot connected';
-    statusText.textContent = `TT: ${tt.channelTitle || 'Live'}`;
+    statusText.textContent = `${activeTags[0].code}: ${activeTags[0].title || 'Live'}`;
   } else if (isAnyConnecting) {
     statusDot.className = 'status-dot connecting';
     statusText.textContent = 'Connecting...';
@@ -748,11 +965,12 @@ function refreshGlobalStatusHeader() {
     statusText.textContent = 'Offline';
   }
 
-  btnOpenConnect.title = `YT: ${yt.message} | TT: ${tt.message}`;
+  btnOpenConnect.title = `YT: ${yt.message} | TT: ${tt.message} | TW: ${tw.message}`;
 }
 
 window.chatPanelAPI.onChatStatus((status) => {
-  const plat = status.platform === 'tiktok' ? 'tiktok' : 'youtube';
+  const plat =
+    status.platform === 'tiktok' ? 'tiktok' : status.platform === 'twitch' ? 'twitch' : 'youtube';
   const state = status.state || 'disconnected';
 
   platformStates[plat] = {
@@ -761,8 +979,20 @@ window.chatPanelAPI.onChatStatus((status) => {
     message: status.message || 'Belum Terhubung'
   };
 
+  if (state === 'disconnected' || state === 'error') {
+    platformStats[plat].viewerCount = 0;
+    if (plat === 'youtube') {
+      platformStats.youtube.likeCount = 0;
+    }
+    updateLiveStatsUI();
+  }
+
   if (plat === 'youtube') {
-    if (ytStatusText) ytStatusText.textContent = status.message || 'Belum Terhubung';
+    if (ytStatusText) {
+      ytStatusText.textContent = status.message || 'Belum Terhubung';
+      ytStatusText.classList.toggle('live', state === 'connected');
+      ytStatusText.classList.toggle('error', state === 'error');
+    }
     if (state === 'connected') {
       btnConnect.textContent = 'Disconnect';
       btnConnect.classList.add('connected');
@@ -772,8 +1002,12 @@ window.chatPanelAPI.onChatStatus((status) => {
       btnConnect.textContent = 'Connect';
       btnConnect.classList.remove('connected');
     }
-  } else {
-    if (ttStatusText) ttStatusText.textContent = status.message || 'Belum Terhubung';
+  } else if (plat === 'tiktok') {
+    if (ttStatusText) {
+      ttStatusText.textContent = status.message || 'Belum Terhubung';
+      ttStatusText.classList.toggle('live', state === 'connected');
+      ttStatusText.classList.toggle('error', state === 'error');
+    }
     if (state === 'connected') {
       btnConnectTiktok.textContent = 'Disconnect';
       btnConnectTiktok.classList.add('connected');
@@ -783,10 +1017,196 @@ window.chatPanelAPI.onChatStatus((status) => {
       btnConnectTiktok.textContent = 'Connect';
       btnConnectTiktok.classList.remove('connected');
     }
+  } else if (plat === 'twitch') {
+    if (twStatusText) {
+      twStatusText.textContent = status.message || 'Belum Terhubung';
+      twStatusText.classList.toggle('live', state === 'connected');
+      twStatusText.classList.toggle('error', state === 'error');
+    }
+    if (state === 'connected') {
+      btnConnectTwitch.textContent = 'Disconnect';
+      btnConnectTwitch.classList.add('connected');
+    } else if (state === 'connecting') {
+      btnConnectTwitch.textContent = '...';
+    } else {
+      btnConnectTwitch.textContent = 'Connect';
+      btnConnectTwitch.classList.remove('connected');
+    }
+  }
+
+  if (state === 'error' && status.message) {
+    showErrorToast(plat, status.message);
   }
 
   refreshGlobalStatusHeader();
+  updateLiveStatsUI();
 });
+
+// ==================== DIAGNOSTIC LOGGING & ERROR POPUP TOAST ====================
+
+function formatLogTimestamp(ts) {
+  const d = new Date(ts || Date.now());
+  return d.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+}
+
+function showErrorToast(platform, message) {
+  if (!errorToast) return;
+  const platNames = { youtube: 'YouTube Live', tiktok: 'TikTok Live', twitch: 'Twitch Live' };
+  const label = platNames[platform] || 'Koneksi Live';
+
+  if (toastTitle) toastTitle.textContent = `Error ${label}`;
+  if (toastTime) toastTime.textContent = formatLogTimestamp(Date.now());
+  if (toastMessage) toastMessage.textContent = message;
+
+  errorToast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    errorToast.classList.add('hidden');
+  }, 9000);
+}
+
+if (btnCloseToast) {
+  btnCloseToast.addEventListener('click', () => {
+    errorToast.classList.add('hidden');
+    clearTimeout(toastTimer);
+  });
+}
+
+if (btnViewLogFromToast) {
+  btnViewLogFromToast.addEventListener('click', () => {
+    errorToast.classList.add('hidden');
+    clearTimeout(toastTimer);
+    settingsDrawer.classList.remove('hidden');
+    btnSettings.classList.add('active');
+    switchSettingsTab('tabLogs');
+  });
+}
+
+function addDiagnosticLogEntry(entry) {
+  const item = {
+    platform: entry.platform || 'system',
+    level: entry.level || 'info',
+    message: entry.message || '',
+    details: entry.details || '',
+    timestamp: entry.timestamp || Date.now()
+  };
+
+  diagnosticLogs.unshift(item);
+  if (diagnosticLogs.length > 120) {
+    diagnosticLogs.pop();
+  }
+
+  if (logEmptyState) logEmptyState.classList.add('hidden');
+
+  if (logEntriesList) {
+    const row = document.createElement('div');
+    row.className = `log-entry level-${item.level}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'log-entry-meta';
+    meta.innerHTML = `<span class="log-time">${formatLogTimestamp(item.timestamp)}</span><span class="log-plat-tag">${escapeHtml(item.platform)}</span><span class="log-level-tag">${escapeHtml(item.level)}</span>`;
+    row.appendChild(meta);
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'log-msg';
+    msgEl.textContent = item.message;
+    row.appendChild(msgEl);
+
+    if (item.details && item.details !== item.message) {
+      const detEl = document.createElement('div');
+      detEl.className = 'log-details';
+      detEl.textContent = item.details;
+      row.appendChild(detEl);
+    }
+
+    logEntriesList.prepend(row);
+    while (logEntriesList.children.length > 120) {
+      logEntriesList.removeChild(logEntriesList.lastChild);
+    }
+  }
+
+  if (item.level === 'error' && logErrorBadge) {
+    const isLogsTabOpen =
+      !settingsDrawer.classList.contains('hidden') &&
+      document.getElementById('tabLogs')?.classList.contains('active');
+    if (!isLogsTabOpen) {
+      logErrorBadge.classList.remove('hidden');
+    }
+  }
+}
+
+if (window.chatPanelAPI.onChatLog) {
+  window.chatPanelAPI.onChatLog((entry) => {
+    addDiagnosticLogEntry(entry);
+  });
+}
+
+if (btnCopyLogs) {
+  btnCopyLogs.addEventListener('click', async () => {
+    const text = diagnosticLogs
+      .map(
+        (l) =>
+          `[${formatLogTimestamp(l.timestamp)}] [${l.level.toUpperCase()}] [${l.platform.toUpperCase()}] ${l.message}${l.details ? ` | ${l.details}` : ''}`
+      )
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(text || 'Tidak ada log.');
+      const span = btnCopyLogs.querySelector('span');
+      if (span) {
+        const prev = span.textContent;
+        span.textContent = 'Copied!';
+        setTimeout(() => {
+          span.textContent = prev;
+        }, 1500);
+      }
+    } catch (e) {
+      // Ignore clipboard error
+    }
+  });
+}
+
+if (btnOpenLogFile) {
+  btnOpenLogFile.addEventListener('click', () => {
+    if (window.chatPanelAPI.openLogFile) {
+      window.chatPanelAPI.openLogFile();
+    }
+  });
+}
+
+if (btnClearLogs) {
+  btnClearLogs.addEventListener('click', () => {
+    diagnosticLogs = [];
+    if (logEntriesList) logEntriesList.innerHTML = '';
+    if (logEmptyState) logEmptyState.classList.remove('hidden');
+    if (logErrorBadge) logErrorBadge.classList.add('hidden');
+    if (window.chatPanelAPI.clearLogFile) {
+      window.chatPanelAPI.clearLogFile();
+    }
+  });
+}
+
+if (window.chatPanelAPI.onChatStats) {
+  window.chatPanelAPI.onChatStats((stats) => {
+    const plat =
+      stats.platform === 'tiktok' ? 'tiktok' : stats.platform === 'twitch' ? 'twitch' : 'youtube';
+    if (typeof stats.viewerCount === 'number' && !isNaN(stats.viewerCount)) {
+      platformStats[plat].viewerCount = stats.viewerCount;
+    }
+    if (plat === 'youtube' && typeof stats.likeCount === 'number' && !isNaN(stats.likeCount)) {
+      platformStats.youtube.likeCount = stats.likeCount;
+    }
+    if (stats.channelTitle && platformStates[plat]) {
+      platformStates[plat].channelTitle = stats.channelTitle;
+      refreshGlobalStatusHeader();
+    }
+    updateLiveStatsUI();
+  });
+}
 
 window.chatPanelAPI.onChatMessage((msg) => {
   handleIncomingChat(msg);
@@ -818,11 +1238,25 @@ const demoSamples = [
     plainText: 'Nonton dari FYP TikTok nih kak, seru banget!'
   },
   {
+    platform: 'twitch',
+    authorName: 'TwitchGamer_ID',
+    type: 'text',
+    roles: { isOwner: false, isModerator: false, isMember: true, memberLabel: 'Twitch Subscriber' },
+    plainText: 'Hadir dari Twitch! Stream-nya lancar jaya 60fps 💜'
+  },
+  {
     platform: 'youtube',
     authorName: 'Nightbot',
     type: 'text',
     roles: { isOwner: false, isModerator: true, isMember: false },
     plainText: 'Jangan lupa subscribe dan nyalakan lonceng notifikasi ya guys!'
+  },
+  {
+    platform: 'twitch',
+    authorName: 'StreamElements',
+    type: 'text',
+    roles: { isOwner: false, isModerator: true, isMember: false },
+    plainText: 'Follow social media streamer di deskripsi channel!'
   },
   {
     platform: 'youtube',
@@ -838,6 +1272,14 @@ const demoSamples = [
     purchaseAmount: '💎 299 Coins',
     roles: { isOwner: false, isModerator: false, isMember: true },
     plainText: 'Mengirim Corgi x1 🐶'
+  },
+  {
+    platform: 'twitch',
+    authorName: 'ProViewer_TW',
+    type: 'superchat',
+    purchaseAmount: '💎 500 Bits',
+    roles: { isOwner: false, isModerator: false, isMember: true },
+    plainText: 'Cheer500 Semangat push rank malam ini bang!'
   },
   {
     platform: 'youtube',
@@ -866,20 +1308,34 @@ const demoSamples = [
     authorName: 'StreamerOwner',
     type: 'text',
     roles: { isOwner: true, isModerator: false, isMember: false },
-    plainText: 'Thank you semuanya yang udah mampir dari YouTube maupun TikTok!'
+    plainText: 'Thank you semuanya yang udah mampir dari YouTube, TikTok, maupun Twitch!'
   },
   {
-    platform: 'tiktok',
-    authorName: 'Kevin_TT',
+    platform: 'twitch',
+    authorName: 'Sarah_TV',
     type: 'membership',
     roles: { isOwner: false, isModerator: false, isMember: true },
-    plainText: 'Bergabung menjadi Subscriber TikTok Live!'
+    plainText: 'Berlangganan (Tier 1 Sub) di Twitch selama 3 bulan!'
   }
 ];
 
 let demoIdx = 0;
 
 btnSimulate.addEventListener('click', () => {
+  // Simulate live viewer counts & YouTube like count if currently 0 (offline test mode)
+  const isAllOffline =
+    platformStates.youtube.state !== 'connected' &&
+    platformStates.tiktok.state !== 'connected' &&
+    platformStates.twitch.state !== 'connected';
+
+  if (isAllOffline) {
+    platformStats.youtube.viewerCount = (platformStats.youtube.viewerCount || 120) + Math.floor(Math.random() * 15);
+    platformStats.youtube.likeCount = (platformStats.youtube.likeCount || 85) + Math.floor(Math.random() * 8);
+    platformStats.tiktok.viewerCount = (platformStats.tiktok.viewerCount || 240) + Math.floor(Math.random() * 20);
+    platformStats.twitch.viewerCount = (platformStats.twitch.viewerCount || 65) + Math.floor(Math.random() * 10);
+    updateLiveStatsUI();
+  }
+
   // Inject a batch on first click if empty, or one by one on subsequent clicks
   if (allMessages.length === 0) {
     demoSamples.forEach((sample, idx) => {

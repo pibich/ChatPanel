@@ -8,66 +8,66 @@
 </head>
 <body>
   <div id="app" class="app-container">
-    <!-- Top App Tabs / Responsive Toolbar -->
+    <!-- Top App Titlebar -->
     <header class="titlebar">
-      <!-- 1. Icon Koneksi (plus drag handle area) -->
+      <!-- 1. Connection Status Pill & Drag Handle -->
       <div class="titlebar-left">
-        <button id="btnOpenConnect" class="conn-icon-btn" title="Status Koneksi Live (Klik untuk atur koneksi)">
+        <button id="btnOpenConnect" class="conn-icon-btn" title="Status Koneksi Live (Klik untuk atur koneksi)" aria-label="Status Koneksi Live">
           <span id="statusDot" class="status-dot disconnected"></span>
           <span id="statusText" class="conn-label">Offline</span>
         </button>
         <div class="drag-spacer" title="Geser Jendela"></div>
       </div>
 
-      <!-- 2. Scrollbar Opacity | 3. Always on Top | 4. Lock & Click Through | 5. Settings | 6. Minimize | 7. Close -->
+      <!-- 2. Quick Opacity | 3. Always on Top | 4. Lock & Click Through | 5. Settings | 6. Minimize | 7. Close -->
       <div class="titlebar-actions">
-        <!-- Scrollbar Opacity -->
+        <!-- Quick Opacity Slider -->
         <div class="quick-opacity" title="Transparansi Overlay">
-          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path>
           </svg>
-          <input id="quickOpacitySlider" type="range" min="10" max="100" value="82" />
+          <input id="quickOpacitySlider" type="range" min="10" max="100" value="82" aria-label="Transparansi Overlay Cepat" />
         </div>
 
         <!-- Always on Top -->
-        <button id="btnPinTop" class="icon-btn active" title="Always on Top / Pin on Top (Ctrl+Shift+T)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnPinTop" class="icon-btn active" title="Always on Top / Pin on Top (Ctrl+Shift+T)" aria-label="Toggle Always on Top">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M12 17v5"></path>
             <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
           </svg>
         </button>
 
         <!-- Lock & Click-Through Mode -->
-        <button id="btnLockOverlay" class="icon-btn unlock-Interactive" title="Lock & Click-Through Mode (Ctrl+Shift+L)">
-          <svg id="iconUnlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnLockOverlay" class="icon-btn unlock-Interactive" title="Lock & Click-Through Mode (Ctrl+Shift+L)" aria-label="Toggle Click-Through Mode">
+          <svg id="iconUnlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
-          <svg id="iconLock" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg id="iconLock" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
         </button>
 
         <!-- Settings -->
-        <button id="btnSettings" class="icon-btn" title="Pengaturan & Koneksi">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnSettings" class="icon-btn" title="Pengaturan & Koneksi" aria-label="Buka Pengaturan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </button>
 
         <!-- Minimize -->
-        <button id="btnMinimize" class="icon-btn" title="Minimize">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnMinimize" class="icon-btn" title="Minimize" aria-label="Minimize Jendela">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
 
         <!-- Close -->
-        <button id="btnClose" class="icon-btn close-btn" title="Tutup Aplikasi">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnClose" class="icon-btn close-btn" title="Tutup Aplikasi" aria-label="Tutup Aplikasi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -76,151 +76,523 @@
     </header>
 
     <!-- Click-Through Lock Floating Banner (shown when locked) -->
-    <div id="lockNotice" class="lock-notice hidden">
+    <div id="lockNotice" class="lock-notice hidden" role="status" aria-live="polite">
+      <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
       <span>Mode Click-Through Aktif (Ctrl+Shift+L atau klik gembok untuk buka)</span>
     </div>
 
-    <!-- Settings Panel Drawer -->
-    <aside id="settingsDrawer" class="settings-drawer hidden">
+    <!-- Settings Panel Drawer (UI/UX Pro Max Redesigned) -->
+    <aside id="settingsDrawer" class="settings-drawer hidden" aria-label="Panel Pengaturan">
       <div class="settings-header">
-        <h3>Pengaturan & Koneksi Live</h3>
-        <button id="btnCloseSettings" class="icon-btn">✕</button>
+        <div class="settings-title-wrap">
+          <span class="settings-header-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </span>
+          <div>
+            <h3>Control Center</h3>
+            <p class="settings-subtitle">Koneksi Multi-Stream & Kustomisasi Overlay</p>
+          </div>
+        </div>
+        <button id="btnCloseSettings" class="icon-btn close-drawer-btn" title="Tutup Pengaturan" aria-label="Tutup Pengaturan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
-      <div class="settings-body">
-        <!-- Stream Connectivity (YouTube & TikTok) -->
-        <div class="setting-section">
-          <h4>Konektivitas Live Stream</h4>
+      <!-- Segmented Navigation Tabs (Progressive Disclosure) -->
+      <nav class="settings-tabs" role="tablist" aria-label="Kategori Pengaturan">
+        <button class="settings-tab active" data-tab="tabConnect" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+            <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+            <line x1="12" y1="20" x2="12.01" y2="20"></line>
+          </svg>
+          <span>Koneksi</span>
+        </button>
+        <button class="settings-tab" data-tab="tabFilter" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Filter & Bot</span>
+        </button>
+        <button class="settings-tab" data-tab="tabAppearance" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+          </svg>
+          <span>Tampilan</span>
+        </button>
+        <button class="settings-tab" data-tab="tabAudio" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <span>Audio</span>
+        </button>
+        <button class="settings-tab" data-tab="tabLogs" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          <span>Log</span>
+          <span id="logErrorBadge" class="tab-error-dot hidden"></span>
+        </button>
+      </nav>
 
-          <!-- YouTube Live Input -->
-          <div class="setting-row">
-            <label for="streamUrlInput">YouTube Live (URL / Video ID / <code>@channel</code>):</label>
+      <div class="settings-body">
+        <!-- TAB 1: STREAM CONNECTIVITY -->
+        <section id="tabConnect" class="settings-pane active" role="tabpanel">
+          <!-- YouTube Card -->
+          <div class="platform-connect-card yt-card">
+            <div class="plat-card-header">
+              <div class="plat-brand">
+                <span class="plat-badge yt">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.56A3.02 3.02 0 0 0 .5 6.2 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.8 3.02 3.02 0 0 0 2.12 2.14c1.88.56 9.38.56 9.38.56s7.5 0 9.38-.56a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.8zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/>
+                  </svg>
+                </span>
+                <div>
+                  <label for="streamUrlInput" class="plat-title">YouTube Live</label>
+                  <span class="plat-hint">URL Live, Video ID, atau <code>@channel</code></span>
+                </div>
+              </div>
+              <span id="ytStatusText" class="plat-status-pill">Belum Terhubung</span>
+            </div>
             <div class="input-group">
-              <span class="platform-tag yt" title="YouTube Live">YT</span>
               <input
                 id="streamUrlInput"
                 type="text"
-                placeholder="https://youtube.com/live/... atau @channel"
+                placeholder="Contoh: @LofiGirl atau youtube.com/live/..."
                 autocomplete="off"
               />
-              <button id="btnConnect" class="btn-primary">Connect</button>
+              <button id="btnConnect" class="btn-primary yt-btn">Connect</button>
             </div>
           </div>
-          <div class="connection-status-box">
-            YouTube: <strong id="ytStatusText">Belum Terhubung</strong>
-          </div>
 
-          <!-- TikTok Live Input -->
-          <div class="setting-row" style="margin-top: 4px;">
-            <label for="tiktokInput">TikTok Live (<code>@username</code> / URL Live):</label>
+          <!-- TikTok Card -->
+          <div class="platform-connect-card tt-card">
+            <div class="plat-card-header">
+              <div class="plat-brand">
+                <span class="plat-badge tt">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                </span>
+                <div>
+                  <label for="tiktokInput" class="plat-title">TikTok Live</label>
+                  <span class="plat-hint">Username <code>@user</code> atau URL Live</span>
+                </div>
+              </div>
+              <span id="ttStatusText" class="plat-status-pill">Belum Terhubung</span>
+            </div>
             <div class="input-group">
-              <span class="platform-tag tt" title="TikTok Live">TT</span>
               <input
                 id="tiktokInput"
                 type="text"
-                placeholder="@username atau tiktok.com/@user/live"
+                placeholder="Contoh: @username atau tiktok.com/@user/live"
                 autocomplete="off"
               />
               <button id="btnConnectTiktok" class="btn-primary tt-btn">Connect</button>
             </div>
           </div>
-          <div class="connection-status-box">
-            TikTok: <strong id="ttStatusText">Belum Terhubung</strong>
-          </div>
 
-          <div class="setting-actions-row">
-            <button id="btnSimulate" class="btn-secondary" title="Kirim contoh chat simulasi YouTube & TikTok">
-              ▶ Tes Simulasi Chat
-            </button>
-            <button id="btnClearChat" class="btn-secondary danger" title="Bersihkan seluruh layar chat">
-              🗑 Clear Chat
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Kategori & Bot -->
-        <div class="setting-section">
-          <h4>Filter Kategori & Bot</h4>
-          <div class="setting-row">
-            <label>Tampilkan Kategori Chat:</label>
-            <div class="pill-group">
-              <button class="filter-pill active" data-filter="all">Semua Chat</button>
-              <button class="filter-pill" data-filter="vip">★ VIP / Mod / Member</button>
-              <button class="filter-pill" data-filter="superchat">$ Super Chat</button>
+          <!-- Twitch Card -->
+          <div class="platform-connect-card tw-card">
+            <div class="plat-card-header">
+              <div class="plat-brand">
+                <span class="plat-badge tw">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+                  </svg>
+                </span>
+                <div>
+                  <label for="twitchInput" class="plat-title">Twitch Live</label>
+                  <span class="plat-hint">Username channel atau <code>twitch.tv/user</code></span>
+                </div>
+              </div>
+              <span id="twStatusText" class="plat-status-pill">Belum Terhubung</span>
+            </div>
+            <div class="input-group">
+              <input
+                id="twitchInput"
+                type="text"
+                placeholder="Contoh: shroud atau twitch.tv/shroud"
+                autocomplete="off"
+              />
+              <button id="btnConnectTwitch" class="btn-primary tw-btn">Connect</button>
             </div>
           </div>
-          <div class="setting-toggle">
-            <input id="chkHideBots" type="checkbox" checked />
-            <label for="chkHideBots">Sembunyikan Pesan Bot (Nightbot, dll)</label>
-          </div>
-          <div class="setting-row">
-            <label for="botListInput">Daftar Nama Bot (pisahkan dengan koma):</label>
-            <input
-              id="botListInput"
-              type="text"
-              value="Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Wizebot, Stay_Hydrated_Bot"
-            />
-          </div>
-          <div class="setting-toggle">
-            <input id="chkHideCommands" type="checkbox" checked />
-            <label for="chkHideCommands">Sembunyikan Command (!lagu, !spec, dll)</label>
-          </div>
-        </div>
 
-        <!-- Overlay Appearance -->
-        <div class="setting-section">
-          <h4>Tampilan & Transparansi</h4>
-          <div class="setting-row">
-            <label for="opacityRange">Opasitas Background: <span id="opacityVal">82%</span></label>
-            <input id="opacityRange" type="range" min="10" max="100" value="82" />
+          <!-- Quick Simulation & Clear Actions -->
+          <div class="setting-actions-card">
+            <button id="btnSimulate" class="btn-secondary" title="Kirim contoh chat simulasi YouTube, TikTok & Twitch">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Tes Simulasi Chat</span>
+            </button>
+            <button id="btnClearChat" class="btn-secondary danger" title="Bersihkan seluruh layar chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Clear Chat</span>
+            </button>
           </div>
-          <div class="setting-row">
-            <label for="fontSizeRange">Ukuran Font Chat: <span id="fontSizeVal">14px</span></label>
-            <input id="fontSizeRange" type="range" min="11" max="22" value="14" />
-          </div>
-          <div class="setting-toggle">
-            <input id="chkShowAvatars" type="checkbox" checked />
-            <label for="chkShowAvatars">Tampilkan Foto Profil (Avatar)</label>
-          </div>
-          <div class="setting-toggle">
-            <input id="chkShowTimestamp" type="checkbox" checked />
-            <label for="chkShowTimestamp">Tampilkan Waktu Chat (Timestamp)</label>
-          </div>
-          <div class="setting-toggle">
-            <input id="chkCompactMode" type="checkbox" />
-            <label for="chkCompactMode">Mode Rapat (Compact One-Line Chat)</label>
-          </div>
-          <div class="setting-toggle">
-            <input id="chkTextOutline" type="checkbox" checked />
-            <label for="chkTextOutline">Bayangan Teks Tajam (Anti-Samar saat Transparan)</label>
-          </div>
-        </div>
+        </section>
 
-        <!-- Audio & QoL -->
-        <div class="setting-section">
-          <h4>Suara & Pintasan</h4>
-          <div class="setting-toggle">
-            <input id="chkSoundSuperchat" type="checkbox" checked />
-            <label for="chkSoundSuperchat">Bunyi Notifikasi saat Super Chat / Member Baru</label>
+        <!-- TAB 2: FILTER & BOT MODERATION -->
+        <section id="tabFilter" class="settings-pane hidden" role="tabpanel">
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Filter Kategori Pesan</span>
+            </div>
+            <p class="card-helper-text">Pilih jenis pesan yang ingin ditampilkan pada layar chat utama:</p>
+            <div class="pill-group">
+              <button class="filter-pill active" data-filter="all">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Semua Chat</span>
+              </button>
+              <button class="filter-pill" data-filter="vip">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+                <span>VIP / Mod / Member</span>
+              </button>
+              <button class="filter-pill" data-filter="superchat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <span>Donasi / Sub</span>
+              </button>
+            </div>
           </div>
-          <div class="setting-toggle">
-            <input id="chkSoundChat" type="checkbox" />
-            <label for="chkSoundChat">Bunyi Klik Halus setiap Chat Masuk</label>
+
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4"></path>
+                <line x1="8" y1="16" x2="8" y2="16"></line>
+                <line x1="16" y1="16" x2="16" y2="16"></line>
+              </svg>
+              <span>Proteksi Bot & Command</span>
+            </div>
+
+            <label class="switch-row" for="chkHideBots">
+              <div class="switch-info">
+                <span class="switch-title">Sembunyikan Pesan Bot</span>
+                <span class="switch-desc">Otomatis memblokir bot populer meskipun berstatus Moderator</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkHideBots" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+
+            <div class="setting-field">
+              <label for="botListInput" class="field-label">Daftar Nama Bot (pisahkan dengan koma):</label>
+              <input
+                id="botListInput"
+                class="text-input"
+                type="text"
+                value="Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Wizebot, Stay_Hydrated_Bot, BotRix, PhantomBot, Sery_Bot, PokemonCommunityGame, SoundAlerts"
+              />
+              <span class="field-hint">Mendukung pencocokan nama tampilan maupun @username sebagian.</span>
+            </div>
+
+            <div class="card-divider"></div>
+
+            <label class="switch-row" for="chkHideCommands">
+              <div class="switch-info">
+                <span class="switch-title">Sembunyikan Command Chat (<code>!command</code>)</span>
+                <span class="switch-desc">Sembunyikan pesan penonton yang diawali tanda seru (!spec, !lagu)</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkHideCommands" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
           </div>
-          <div class="shortcut-info">
-            <div><kbd>Ctrl+Shift+T</kbd> Toggle Pin on Top</div>
-            <div><kbd>Ctrl+Shift+L</kbd> Toggle Lock / Click-Through</div>
-            <div><kbd>Klik Pesan</kbd> Pin / Sematkan Chat di Atas</div>
+        </section>
+
+        <!-- TAB 3: OVERLAY APPEARANCE -->
+        <section id="tabAppearance" class="settings-pane hidden" role="tabpanel">
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path>
+              </svg>
+              <span>Skala & Transparansi</span>
+            </div>
+
+            <div class="slider-control">
+              <div class="slider-header">
+                <label for="opacityRange">Opasitas Background Panel</label>
+                <span id="opacityVal" class="slider-badge">82%</span>
+              </div>
+              <input id="opacityRange" class="modern-range" type="range" min="10" max="100" value="82" />
+            </div>
+
+            <div class="slider-control">
+              <div class="slider-header">
+                <label for="fontSizeRange">Ukuran Font Pesan Chat</label>
+                <span id="fontSizeVal" class="slider-badge">14px</span>
+              </div>
+              <input id="fontSizeRange" class="modern-range" type="range" min="11" max="22" value="14" />
+            </div>
           </div>
-        </div>
+
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+              <span>Elemen Visual Chat</span>
+            </div>
+
+            <label class="switch-row" for="chkShowAvatars">
+              <div class="switch-info">
+                <span class="switch-title">Foto Profil Penonton (Avatar)</span>
+                <span class="switch-desc">Tampilkan avatar bundar di sebelah kiri nama penonton</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkShowAvatars" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+
+            <label class="switch-row" for="chkShowTimestamp">
+              <div class="switch-info">
+                <span class="switch-title">Waktu Pesan (Timestamp)</span>
+                <span class="switch-desc">Tampilkan jam:menit saat pesan diterima</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkShowTimestamp" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+
+            <label class="switch-row" for="chkCompactMode">
+              <div class="switch-info">
+                <span class="switch-title">Mode Rapat (Compact Mode)</span>
+                <span class="switch-desc">Kurangi jarak antar pesan agar muat lebih banyak baris</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkCompactMode" type="checkbox" />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+
+            <label class="switch-row" for="chkTextOutline">
+              <div class="switch-info">
+                <span class="switch-title">Bayangan Teks Tajam (Anti-Samar)</span>
+                <span class="switch-desc">Outline hitam agar teks tetap terbaca jelas di atas game terang</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkTextOutline" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- TAB 4: AUDIO & SHORTCUTS -->
+        <section id="tabAudio" class="settings-pane hidden" role="tabpanel">
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              <span>Efek Suara Notifikasi</span>
+            </div>
+
+            <label class="switch-row" for="chkSoundSuperchat">
+              <div class="switch-info">
+                <span class="switch-title">Notifikasi Donasi & Member Baru</span>
+                <span class="switch-desc">Bunyikan nada saat ada Super Chat, Gift TikTok, Bits, atau Sub</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkSoundSuperchat" type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+
+            <label class="switch-row" for="chkSoundChat">
+              <div class="switch-info">
+                <span class="switch-title">Nada Klik Halus Setiap Chat</span>
+                <span class="switch-desc">Efek suara lembut setiap ada pesan chat baru yang masuk</span>
+              </div>
+              <div class="toggle-switch">
+                <input id="chkSoundChat" type="checkbox" />
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"></path>
+              </svg>
+              <span>Pintasan Keyboard Global</span>
+            </div>
+            <div class="shortcut-grid">
+              <div class="shortcut-item">
+                <span class="shortcut-desc">Toggle Always on Top</span>
+                <kbd>Ctrl + Shift + T</kbd>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-desc">Toggle Click-Through (Tembus Klik)</span>
+                <kbd>Ctrl + Shift + L</kbd>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-desc">Sematkan (Pin) Pesan di Atas</span>
+                <kbd>Klik Kiri Pesan</kbd>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: DIAGNOSTIC & ERROR LOGS -->
+        <section id="tabLogs" class="settings-pane hidden" role="tabpanel">
+          <div class="setting-card log-card">
+            <div class="log-card-header">
+              <div class="card-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Log Aktivitas &amp; Error</span>
+              </div>
+              <div class="log-toolbar-actions">
+                <button id="btnCopyLogs" class="log-action-btn" title="Salin semua log ke Clipboard">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy</span>
+                </button>
+                <button id="btnOpenLogFile" class="log-action-btn" title="Buka file chatpanel-error.log di Notepad">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  <span>File Log</span>
+                </button>
+                <button id="btnClearLogs" class="log-action-btn danger" title="Bersihkan daftar log">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                  </svg>
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+
+            <p class="card-helper-text">
+              Setiap aktivitas koneksi dan pesan error dari YouTube, TikTok, &amp; Twitch tercatat otomatis di bawah ini serta disimpan ke file lokal.
+            </p>
+
+            <div id="logListContainer" class="log-list-container">
+              <div id="logEmptyState" class="log-empty-state">Belum ada catatan aktivitas atau error.</div>
+              <div id="logEntriesList" class="log-entries-list"></div>
+            </div>
+          </div>
+        </section>
       </div>
     </aside>
+
+    <!-- Error / Alert Floating Popup Toast -->
+    <div id="errorToast" class="error-toast hidden" role="alert" aria-live="assertive">
+      <div class="toast-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="toast-body">
+        <div class="toast-title-row">
+          <span id="toastTitle" class="toast-title">Koneksi Bermasalah</span>
+          <span id="toastTime" class="toast-time">Baru saja</span>
+        </div>
+        <p id="toastMessage" class="toast-message"></p>
+        <div class="toast-actions">
+          <button id="btnViewLogFromToast" class="toast-btn-link">Lihat Detail Log</button>
+          <button id="btnCloseToast" class="toast-btn-dismiss" aria-label="Tutup Notifikasi">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Stats Bar (Viewers across YT/TT/TW & YouTube Likes) -->
+    <div id="liveStatsBar" class="live-stats-bar" role="region" aria-label="Statistik Live Stream">
+      <div class="stats-group" title="Jumlah Penonton Live (Live Viewer Count)">
+        <span class="stats-icon eye-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </span>
+        <span id="totalViewerCount" class="stats-total-val">0</span>
+        <span class="stats-unit">Viewers</span>
+        <div id="platformViewerBadges" class="platform-viewer-badges"></div>
+      </div>
+
+      <div id="ytLikeBadge" class="stats-like-pill" title="Jumlah Like YouTube Live">
+        <svg class="like-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+        </svg>
+        <span id="ytLikeCount">0</span>
+      </div>
+    </div>
 
     <!-- Pinned Message Highlight Container -->
     <div id="pinnedMessageBar" class="pinned-bar hidden">
       <div class="pinned-header">
-        <span class="pinned-label">📌 PESAN DISEMATKAN</span>
-        <button id="btnUnpinMessage" class="unpin-btn" title="Lepas Sematan">✕</button>
+        <span class="pinned-label">
+          <svg class="pin-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 17v5"></path>
+            <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
+          </svg>
+          <span>PESAN DISEMATKAN</span>
+        </span>
+        <button id="btnUnpinMessage" class="unpin-btn" title="Lepas Sematan" aria-label="Lepas Sematan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div id="pinnedMessageContent" class="pinned-content"></div>
     </div>
@@ -228,10 +600,14 @@
     <!-- Live Chat Stream Container -->
     <main id="chatContainer" class="chat-container">
       <div id="emptyState" class="empty-state">
-        <div class="empty-icon">💬</div>
-        <p class="empty-title">Siap Menampilkan Live Chat</p>
+        <div class="empty-icon-svg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+        </div>
+        <p class="empty-title">Siap Menampilkan Multi-Stream Chat</p>
         <p class="empty-desc">
-          Klik <b>Icon Koneksi</b> di kiri atas atau ikon <b>⚙ (Settings)</b> untuk menghubungkan YouTube Live maupun menjalankan <b>▶ Tes Simulasi Chat</b>.
+          Klik tombol <b>Status Koneksi</b> di kiri atas atau ikon <b>Pengaturan</b> untuk menghubungkan <b>YouTube</b>, <b>TikTok</b>, &amp; <b>Twitch</b>, atau klik <b>Tes Simulasi Chat</b>.
         </p>
       </div>
       <div id="chatList" class="chat-list"></div>
@@ -239,7 +615,11 @@
 
     <!-- Auto-scroll Paused Indicator -->
     <button id="btnResumeScroll" class="resume-scroll-btn hidden">
-      <span>⬇ Scroll terjeda (<span id="unreadCount">0</span> chat baru)</span>
+      <svg class="resume-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <polyline points="19 12 12 19 5 12"></polyline>
+      </svg>
+      <span>Scroll terjeda (<span id="unreadCount">0</span> chat baru)</span>
     </button>
   </div>
 

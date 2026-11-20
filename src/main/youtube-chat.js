@@ -14,6 +14,7 @@ class YouTubeLiveChat extends EventEmitter {
     super();
     this.isRunning = false;
     this.pollTimer = null;
+    this.statsTimer = null;
     this.videoId = null;
     this.channelTitle = null;
     this.liveTitle = null;
@@ -21,6 +22,18 @@ class YouTubeLiveChat extends EventEmitter {
     this.clientVersion = '2.20241118.01.00';
     this.continuation = null;
     this.seenMessageIds = new Set();
+    this.viewerCount = 0;
+    this.likeCount = 0;
+  }
+
+  emitLog(level, message, details = '') {
+    this.emit('log', {
+      platform: 'youtube',
+      level,
+      message,
+      details: details ? String(details) : '',
+      timestamp: Date.now()
+    });
   }
 
   /**
@@ -68,8 +81,20 @@ class YouTubeLiveChat extends EventEmitter {
 
   async connect(input) {
     this.disconnect();
-    const targetUrl = this.parseTargetUrl(input);
+    let targetUrl;
+    try {
+      targetUrl = this.parseTargetUrl(input);
+    } catch (err) {
+      this.emitLog('error', err.message, `Input: "${input}"`);
+      this.emit('status', {
+        platform: 'youtube',
+        state: 'error',
+        message: err.message
+      });
+      return;
+    }
 
+    this.emitLog('info', `Menghubungkan ke YouTube Live (${targetUrl})...`);
     this.emit('status', {
       platform: 'youtube',
       state: 'connecting',
@@ -136,6 +161,7 @@ class YouTubeLiveChat extends EventEmitter {
       this.continuation = continuation;
       this.isRunning = true;
 
+      this.emitLog('info', `Terhubung ke YouTube Live: ${this.channelTitle} (Video ID: ${this.videoId})`);
       this.emit('status', {
         platform: 'youtube',
         state: 'connected',
@@ -145,9 +171,23 @@ class YouTubeLiveChat extends EventEmitter {
         message: `YT Live: ${this.channelTitle}`
       });
 
+      // Extract initial viewer count and like count from watchHtml AFTER emitting connected status
+      this.extractAndEmitStatsFromHtml(watchHtml);
+
+      // Poll live stats (concurrent viewers & likes) every 8 seconds
+      clearInterval(this.statsTimer);
+      this.statsTimer = setInterval(() => {
+        if (this.isRunning) {
+          this.pollLiveStats().catch(() => {});
+        }
+      }, 8000);
+      // Also run an immediate Innertube stats check
+      this.pollLiveStats().catch(() => {});
+
       this.scheduleNextPoll(200);
     } catch (err) {
       this.isRunning = false;
+      this.emitLog('error', err.message || 'Gagal terhubung ke YouTube Live.', err?.stack || String(err));
       this.emit('status', {
         platform: 'youtube',
         state: 'error',
@@ -424,11 +464,239 @@ class YouTubeLiveChat extends EventEmitter {
     return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
   }
 
+  extractLikesFromText(text) {
+    if (!text) return null;
+
+    // 1. Exact likeCount string or number in microformat / videoPrimaryInfoRenderer: "likeCount":"9984" or "likeCount":9984
+    const exactMatch =
+      text.match(/"likeCount"\s*:\s*"(\d+)"/) ||
+      text.match(/"likeCount"\s*:\s*(\d+)/) ||
+      text.match(/"likeCountIfIndifferentNumber"\s*:\s*"(\d+)"/);
+    if (exactMatch && exactMatch[1]) {
+      const val = parseInt(exactMatch[1], 10);
+      if (!isNaN(val)) return val;
+    }
+
+    // 2. Accessibility text in Indonesian or English:
+    // e.g. "suka video ini bersama 9.984 orang lainnya" or "like this video along with 9,984 other people" or "9.984 suka"
+    const a11yPatterns = [
+      /"accessibilityText"\s*:\s*"[^"]*?(?:bersama|with)\s+([\d.,]+)\s+(?:orang|other)/i,
+      /"label"\s*:\s*"[^"]*?(?:bersama|with)\s+([\d.,]+)\s+(?:orang|other)/i,
+      /"accessibilityText"\s*:\s*"([\d.,]+)\s+(?:suka|likes?)"/i,
+      /"label"\s*:\s*"([\d.,]+)\s+(?:suka|likes?)"/i
+    ];
+    for (const pat of a11yPatterns) {
+      const m = text.match(pat);
+      if (m && m[1]) {
+        const val = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
+        if (!isNaN(val)) return val;
+      }
+    }
+
+    // 3. Modern buttonViewModel title: "iconName":"LIKE","title":"9,9 rb"
+    const btnTitleMatch = text.match(/"iconName"\s*:\s*"LIKE"\s*,\s*"title"\s*:\s*"([^"]+)"/);
+    if (btnTitleMatch && btnTitleMatch[1]) {
+      const val = this.parseCompactNumber(btnTitleMatch[1]);
+      if (val !== null) return val;
+    }
+
+    return null;
+  }
+
+  extractViewersFromText(text) {
+    if (!text) return null;
+    const viewerPatterns = [
+      /"originalViewCount"\s*:\s*"(\d+)"/,
+      /"concurrentViewers"\s*:\s*"(\d+)"/,
+      /"viewCount"\s*:\s*\{"videoViewCountRenderer"\s*:\s*\{"viewCount"\s*:\s*\{"runs"\s*:\s*\[\{"text"\s*:\s*"([\d.,]+)"\}/,
+      /"viewCount"\s*:\s*\{"runs"\s*:\s*\[\{"text"\s*:\s*"([\d.,]+)"\}/
+    ];
+    for (const pat of viewerPatterns) {
+      const m = text.match(pat);
+      if (m && m[1]) {
+        const parsed = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
+        if (!isNaN(parsed)) return parsed;
+      }
+    }
+    return null;
+  }
+
+  extractAndEmitStatsFromHtml(html) {
+    if (!html) return;
+
+    const viewers = this.extractViewersFromText(html);
+    if (viewers !== null) {
+      this.viewerCount = viewers;
+    }
+
+    const likes = this.extractLikesFromText(html);
+    if (likes !== null) {
+      this.likeCount = likes;
+    }
+
+    if (this.isRunning) {
+      this.emit('stats', {
+        platform: 'youtube',
+        viewerCount: this.viewerCount,
+        likeCount: this.likeCount
+      });
+    }
+  }
+
+  async pollLiveStats() {
+    if (!this.isRunning || !this.videoId || !this.apiKey) return;
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        Origin: 'https://www.youtube.com',
+        Referer: `https://www.youtube.com/watch?v=${this.videoId}`,
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache'
+      };
+
+      const contextPayload = {
+        context: {
+          client: {
+            clientName: 'WEB',
+            clientVersion: this.clientVersion,
+            hl: 'id',
+            gl: 'ID'
+          }
+        },
+        videoId: this.videoId
+      };
+
+      // 1. Query updated_metadata for real-time concurrent viewer count
+      const metaUrl = `https://www.youtube.com/youtubei/v1/updated_metadata?key=${this.apiKey}&prettyPrint=false`;
+      const metaPromise = fetch(metaUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(contextPayload)
+      }).catch(() => null);
+
+      // 2. Query /youtubei/v1/player for exact real-time microformat.playerMicroformatRenderer.likeCount
+      const playerUrl = `https://www.youtube.com/youtubei/v1/player?key=${this.apiKey}&prettyPrint=false`;
+      const playerPromise = fetch(playerUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(contextPayload)
+      }).catch(() => null);
+
+      const [metaRes, playerRes] = await Promise.all([metaPromise, playerPromise]);
+
+      if (metaRes && metaRes.ok) {
+        const metaData = await metaRes.json();
+        const actions = metaData?.actions || [];
+        for (const act of actions) {
+          if (act.updateViewershipAction) {
+            const vcRenderer = act.updateViewershipAction.viewCount?.videoViewCountRenderer;
+            if (vcRenderer) {
+              const rawOrig = vcRenderer.originalViewCount;
+              const unlabeled = vcRenderer.unlabeledViewCountValue?.simpleText;
+              const runsText =
+                vcRenderer.viewCount?.runs?.[0]?.text || vcRenderer.viewCount?.simpleText || '';
+              const numStr = rawOrig || (unlabeled || runsText).replace(/[^\d]/g, '');
+              if (numStr) {
+                const parsed = parseInt(numStr, 10);
+                if (!isNaN(parsed)) {
+                  this.viewerCount = parsed;
+                }
+              }
+            }
+          }
+
+          if (act.updateToggleButtonTextAction) {
+            const btnText =
+              act.updateToggleButtonTextAction.defaultText?.simpleText ||
+              act.updateToggleButtonTextAction.defaultText?.runs?.[0]?.text ||
+              '';
+            const num = this.parseCompactNumber(btnText);
+            if (num !== null) {
+              this.likeCount = num;
+            }
+          }
+        }
+      }
+
+      let gotExactLikes = false;
+      if (playerRes && playerRes.ok) {
+        const playerData = await playerRes.json();
+        const rawLikeCount = playerData?.microformat?.playerMicroformatRenderer?.likeCount;
+        if (rawLikeCount !== undefined && rawLikeCount !== null) {
+          const parsedLikes = parseInt(String(rawLikeCount).replace(/[^\d]/g, ''), 10);
+          if (!isNaN(parsedLikes)) {
+            this.likeCount = parsedLikes;
+            gotExactLikes = true;
+          }
+        }
+      }
+
+      // 3. Fallback to /youtubei/v1/next if player microformat didn't return likeCount
+      if (!gotExactLikes) {
+        const nextUrl = `https://www.youtube.com/youtubei/v1/next?key=${this.apiKey}&prettyPrint=false`;
+        const nextRes = await fetch(nextUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(contextPayload)
+        }).catch(() => null);
+
+        if (nextRes && nextRes.ok) {
+          const nextText = await nextRes.text();
+          const extractedLikes = this.extractLikesFromText(nextText);
+          if (extractedLikes !== null) {
+            this.likeCount = extractedLikes;
+          }
+        }
+      }
+
+      if (this.isRunning) {
+        this.emit('stats', {
+          platform: 'youtube',
+          viewerCount: this.viewerCount,
+          likeCount: this.likeCount
+        });
+      }
+    } catch (e) {
+      // Ignore transient stats errors
+    }
+  }
+
+  parseCompactNumber(text) {
+    if (!text || typeof text !== 'string') return null;
+    // Normalize non-breaking spaces (\u00a0) and trim
+    const clean = text.replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
+    if (!clean) return null;
+    // Handle Indonesian/English suffixes like "1,2 rb", "1.2K", "2,5 jt", "2.5M"
+    const match = clean.match(/^([\d.,]+)\s*(rb|k|jt|m|b)?$/i);
+    if (!match) {
+      const digitsOnly = clean.replace(/[^\d]/g, '');
+      return digitsOnly ? parseInt(digitsOnly, 10) : null;
+    }
+    const numPart = match[1];
+    const suffix = (match[2] || '').toLowerCase();
+    if (suffix) {
+      const floatVal = parseFloat(numPart.replace(',', '.'));
+      if (isNaN(floatVal)) return null;
+      if (suffix === 'rb' || suffix === 'k') return Math.round(floatVal * 1000);
+      if (suffix === 'jt' || suffix === 'm') return Math.round(floatVal * 1000000);
+      if (suffix === 'b') return Math.round(floatVal * 1000000000);
+    }
+    const rawInt = parseInt(numPart.replace(/[.,]/g, ''), 10);
+    return isNaN(rawInt) ? null : rawInt;
+  }
+
   disconnect() {
     this.isRunning = false;
     clearTimeout(this.pollTimer);
     this.pollTimer = null;
+    clearInterval(this.statsTimer);
+    this.statsTimer = null;
     this.continuation = null;
+    this.viewerCount = 0;
+    this.likeCount = 0;
   }
 }
 

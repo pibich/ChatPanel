@@ -23,6 +23,16 @@ class TikTokLiveChat extends EventEmitter {
     this.seenMessageIds = new Set();
   }
 
+  emitLog(level, message, details = '') {
+    this.emit('log', {
+      platform: 'tiktok',
+      level,
+      message,
+      details: details ? String(details) : '',
+      timestamp: Date.now()
+    });
+  }
+
   /**
    * Extract clean TikTok uniqueId (username) from input
    */
@@ -56,6 +66,7 @@ class TikTokLiveChat extends EventEmitter {
     try {
       username = this.parseUsername(input);
     } catch (err) {
+      this.emitLog('error', err.message, `Input: "${input}"`);
       this.emit('status', {
         platform: 'tiktok',
         state: 'error',
@@ -67,6 +78,7 @@ class TikTokLiveChat extends EventEmitter {
     this.uniqueId = username;
     this.isRunning = true;
 
+    this.emitLog('info', `Menghubungkan ke TikTok Live @${username}...`);
     this.emit('status', {
       platform: 'tiktok',
       state: 'connecting',
@@ -102,7 +114,10 @@ class TikTokLiveChat extends EventEmitter {
         roomData?.owner?.display_id ||
         `@${username}`;
       const roomTitle = roomData?.title || `TikTok Live (@${username})`;
+      const initialViewers =
+        Number(roomData?.user_count ?? roomData?.userCount ?? state?.viewerCount ?? 0) || 0;
 
+      this.emitLog('info', `Terhubung ke TikTok Live @${username} (${streamerName}) - Penonton awal: ${initialViewers}`);
       this.emit('status', {
         platform: 'tiktok',
         state: 'connected',
@@ -110,12 +125,18 @@ class TikTokLiveChat extends EventEmitter {
         liveTitle: roomTitle,
         message: `TT Live: @${username}`
       });
+
+      this.emit('stats', {
+        platform: 'tiktok',
+        viewerCount: initialViewers
+      });
     } catch (err) {
       this.isRunning = false;
       let errMsg = err?.message || 'Gagal terhubung ke TikTok Live.';
       if (errMsg.toLowerCase().includes('offline') || errMsg.toLowerCase().includes("isn't online")) {
         errMsg = `Akun @${username} sedang tidak Live.`;
       }
+      this.emitLog('error', errMsg, err?.stack || err?.message || String(err));
       this.emit('status', {
         platform: 'tiktok',
         state: 'error',
@@ -200,7 +221,23 @@ class TikTokLiveChat extends EventEmitter {
     this.connection.on('subscribe', handleNewMember);
     this.connection.on('superFanJoin', handleNewMember);
 
-    // 4. Stream Ended / Disconnected
+    // 4. Live Viewer Count Updates (WebcastRoomUserSeqMessage)
+    this.connection.on('roomUser', (data) => {
+      if (!this.isRunning) return;
+      try {
+        const count = Number(data?.viewerCount ?? data?.totalUser ?? data?.total ?? 0);
+        if (!isNaN(count) && count >= 0) {
+          this.emit('stats', {
+            platform: 'tiktok',
+            viewerCount: count
+          });
+        }
+      } catch (e) {
+        // Ignore malformed roomUser frame
+      }
+    });
+
+    // 5. Stream Ended / Disconnected
     this.connection.on('streamEnd', () => {
       this.isRunning = false;
       this.emit('status', {
@@ -313,6 +350,7 @@ class TikTokLiveChat extends EventEmitter {
       platform: 'tiktok',
       type: 'text',
       authorName,
+      authorUsername: user.uniqueId || user.displayId || '',
       avatarUrl,
       roles,
       parts,

@@ -11,11 +11,21 @@ contextBridge.exposeInMainWorld('chatPanelAPI', {
   minimizeWindow: () => ipcRenderer.send('window:minimize'),
   closeWindow: () => ipcRenderer.send('window:close'),
 
+  getLogFilePath: () => ipcRenderer.invoke('log:get-file-path'),
+  openLogFile: () => ipcRenderer.invoke('log:open-file'),
+  clearLogFile: () => ipcRenderer.invoke('log:clear-file'),
+
   onChatStatus: (callback) => {
     ipcRenderer.on('chat:status', (_event, data) => callback(data));
   },
   onChatMessage: (callback) => {
     ipcRenderer.on('chat:message', (_event, data) => callback(data));
+  },
+  onChatStats: (callback) => {
+    ipcRenderer.on('chat:stats', (_event, data) => callback(data));
+  },
+  onChatLog: (callback) => {
+    ipcRenderer.on('chat:log', (_event, data) => callback(data));
   },
   onAlwaysOnTopChanged: (callback) => {
     ipcRenderer.on('window:always-on-top-changed', (_event, state) => callback(state));

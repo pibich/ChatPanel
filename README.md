@@ -1,6 +1,6 @@
 # 💬 ChatPanel
 
-**ChatPanel** adalah aplikasi desktop *overlay* ringan yang menampilkan *live chat* (**YouTube Live** & **TikTok Live**) secara transparan dan selalu berada di atas layar (*Always-on-Top*).
+**ChatPanel** adalah aplikasi desktop *overlay* ringan yang menampilkan *live chat* (**YouTube Live**, **TikTok Live**, & **Twitch Live**) secara transparan dan selalu berada di atas layar (*Always-on-Top*).
 
 ---
 
@@ -16,8 +16,9 @@ Aplikasi ini dibuat sebagai solusi praktis agar *streamer* dapat memantau *live 
 
 - **Always-on-Top & Transparan**: Jendela *chat* melayang di atas aplikasi/game dengan tingkat transparansi latar belakang yang dapat diatur.
 - **Click-Through Mode (Tembus Klik)**: Mengunci panel agar klik *mouse* tembus langsung ke aplikasi atau game di belakangnya.
-- **Multi-Platform Tanpa Ribet**: Mendukung **YouTube Live** dan **TikTok Live** secara bersamaan tanpa memerlukan konfigurasi *API Key* atau *login* akun.
-- **Filter Chat**: Opsi untuk menyembunyikan pesan *bot*, perintah (`!command`), serta fitur *pin* pesan penting.
+- **Multi-Platform Tanpa Ribet**: Mendukung **YouTube Live**, **TikTok Live**, dan **Twitch Live** secara bersamaan tanpa memerlukan konfigurasi *API Key* atau *login* akun.
+- **Live Viewer Count & YouTube Like Counter**: Bar statistik *real-time* di atas panel chat untuk memantau jumlah penonton aktif dari semua platform serta jumlah *Likes* YouTube Live.
+- **Filter Chat & Bot Cerdas**: Opsi untuk menyembunyikan pesan *bot* (termasuk *bot* yang memiliki akses Moderator), perintah (`!command`), serta fitur *pin* pesan penting.
 
 ---
 

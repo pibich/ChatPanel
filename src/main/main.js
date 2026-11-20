@@ -1,16 +1,42 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, screen, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { YouTubeLiveChat } = require('./youtube-chat');
 const { TikTokLiveChat } = require('./tiktok-chat');
+const { TwitchLiveChat } = require('./twitch-chat');
 
 // Prevent Chromium GPU/Disk cache permission & lock errors on Windows
 const customUserData = path.join(app.getPath('appData'), 'ChatPanel');
+const logFilePath = path.join(customUserData, 'chatpanel-error.log');
 try {
   fs.mkdirSync(customUserData, { recursive: true });
   app.setPath('userData', customUserData);
 } catch (e) {
   // Fallback to default
+}
+
+function appendAndSendLog(logEntry) {
+  const entry = {
+    platform: logEntry.platform || 'system',
+    level: logEntry.level || 'info',
+    message: logEntry.message || '',
+    details: logEntry.details || '',
+    timestamp: logEntry.timestamp || Date.now()
+  };
+
+  // Write to persistent log file on disk
+  try {
+    const iso = new Date(entry.timestamp).toISOString();
+    const detailLine = entry.details ? ` | Detail: ${entry.details.replace(/\r?\n/g, ' ')}` : '';
+    const line = `[${iso}] [${entry.level.toUpperCase()}] [${entry.platform.toUpperCase()}] ${entry.message}${detailLine}\n`;
+    fs.appendFileSync(logFilePath, line, 'utf8');
+  } catch (e) {
+    // Ignore disk write failure
+  }
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('chat:log', entry);
+  }
 }
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-http-cache');
@@ -31,6 +57,7 @@ if (!gotTheLock) {
 let mainWindow = null;
 let ytChat = null;
 let ttChat = null;
+let twChat = null;
 let isAlwaysOnTop = true;
 let isClickThrough = false;
 
@@ -70,6 +97,7 @@ function createWindow() {
   mainWindow.on('closed', () => {
     if (ytChat) ytChat.disconnect();
     if (ttChat) ttChat.disconnect();
+    if (twChat) twChat.disconnect();
     mainWindow = null;
   });
 }
@@ -87,6 +115,14 @@ function setupChatManager() {
         mainWindow.webContents.send('chat:message', chatMessage);
       }
     });
+    ytChat.on('stats', (statsPayload) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('chat:stats', { platform: 'youtube', ...statsPayload });
+      }
+    });
+    ytChat.on('log', (logPayload) => {
+      appendAndSendLog(logPayload);
+    });
   }
 
   if (!ttChat) {
@@ -100,6 +136,36 @@ function setupChatManager() {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('chat:message', chatMessage);
       }
+    });
+    ttChat.on('stats', (statsPayload) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('chat:stats', { platform: 'tiktok', ...statsPayload });
+      }
+    });
+    ttChat.on('log', (logPayload) => {
+      appendAndSendLog(logPayload);
+    });
+  }
+
+  if (!twChat) {
+    twChat = new TwitchLiveChat();
+    twChat.on('status', (statusPayload) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('chat:status', { platform: 'twitch', ...statusPayload });
+      }
+    });
+    twChat.on('chat', (chatMessage) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('chat:message', chatMessage);
+      }
+    });
+    twChat.on('stats', (statsPayload) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('chat:stats', { platform: 'twitch', ...statsPayload });
+      }
+    });
+    twChat.on('log', (logPayload) => {
+      appendAndSendLog(logPayload);
     });
   }
 }
@@ -167,6 +233,8 @@ ipcMain.handle('chat:connect', async (_event, payload) => {
 
   if (platform === 'tiktok') {
     await ttChat.connect(targetInput);
+  } else if (platform === 'twitch') {
+    await twChat.connect(targetInput);
   } else {
     await ytChat.connect(targetInput);
   }
@@ -176,6 +244,8 @@ ipcMain.handle('chat:connect', async (_event, payload) => {
 ipcMain.handle('chat:disconnect', (_event, platform = 'youtube') => {
   if (platform === 'tiktok') {
     if (ttChat) ttChat.disconnect();
+  } else if (platform === 'twitch') {
+    if (twChat) twChat.disconnect();
   } else {
     if (ytChat) ytChat.disconnect();
   }
@@ -225,5 +295,30 @@ ipcMain.on('window:minimize', () => {
 ipcMain.on('window:close', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.close();
+  }
+});
+
+ipcMain.handle('log:get-file-path', () => {
+  return logFilePath;
+});
+
+ipcMain.handle('log:open-file', async () => {
+  try {
+    if (!fs.existsSync(logFilePath)) {
+      fs.writeFileSync(logFilePath, `[${new Date().toISOString()}] [INFO] [SYSTEM] Log file initialized.\n`, 'utf8');
+    }
+    await shell.openPath(logFilePath);
+    return { ok: true, path: logFilePath };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('log:clear-file', () => {
+  try {
+    fs.writeFileSync(logFilePath, '', 'utf8');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
 });
