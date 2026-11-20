@@ -1,6 +1,6 @@
 {
   "name": "chatpanel",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ChatPanel - Transparent Always-on-Top Live Stream Chat Overlay for YouTube, TikTok & Twitch",
   "main": "src/main/main.js",
   "author": {

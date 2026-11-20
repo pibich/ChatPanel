@@ -33,7 +33,7 @@ Aplikasi ini dibuat sebagai solusi praktis agar *streamer* dapat memantau *live 
 ## 🚀 Cara Penggunaan
 
 ### 1. Instalasi (Pengguna Windows)
-Unduh file installer **`ChatPanel Setup 1.0.0.exe`** dari halaman **Releases**, lalu jalankan installer tersebut.
+Unduh file installer **`ChatPanel Setup 1.1.0.exe`** dari halaman **Releases**, lalu jalankan installer tersebut.
 
 ### 2. Menjalankan dari Source Code (Developer)
 Pastikan [Node.js](https://nodejs.org/) sudah terpasang di perangkat Anda, lalu jalankan perintah berikut di terminal:
