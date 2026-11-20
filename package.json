@@ -1,0 +1,68 @@
+{
+  "name": "chatpanel",
+  "version": "1.0.0",
+  "description": "ChatPanel - Transparent Always-on-Top Live Stream Chat Overlay for YouTube & TikTok",
+  "main": "src/main/main.js",
+  "author": {
+    "name": "PIBI"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [
+    "chatpanel",
+    "youtube",
+    "tiktok",
+    "livestream",
+    "chat",
+    "overlay",
+    "electron"
+  ],
+  "build": {
+    "appId": "com.pibi.chatpanel",
+    "productName": "ChatPanel",
+    "copyright": "Copyright © 2026 PIBI",
+    "asar": true,
+    "compression": "normal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ChatPanel",
+      "uninstallDisplayName": "ChatPanel",
+      "differentialPackage": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "tiktok-live-connector": "^2.5.0"
+  }
+}

@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Build output (upload .exe installer to GitHub Releases)
+dist/
+
+# Logs & OS files
+npm-debug.log*
+.DS_Store
+Thumbs.db

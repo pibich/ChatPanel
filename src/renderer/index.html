@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatPanel</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Top App Tabs / Responsive Toolbar -->
+    <header class="titlebar">
+      <!-- 1. Icon Koneksi (plus drag handle area) -->
+      <div class="titlebar-left">
+        <button id="btnOpenConnect" class="conn-icon-btn" title="Status Koneksi Live (Klik untuk atur koneksi)">
+          <span id="statusDot" class="status-dot disconnected"></span>
+          <span id="statusText" class="conn-label">Offline</span>
+        </button>
+        <div class="drag-spacer" title="Geser Jendela"></div>
+      </div>
+
+      <!-- 2. Scrollbar Opacity | 3. Always on Top | 4. Lock & Click Through | 5. Settings | 6. Minimize | 7. Close -->
+      <div class="titlebar-actions">
+        <!-- Scrollbar Opacity -->
+        <div class="quick-opacity" title="Transparansi Overlay">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path>
+          </svg>
+          <input id="quickOpacitySlider" type="range" min="10" max="100" value="82" />
+        </div>
+
+        <!-- Always on Top -->
+        <button id="btnPinTop" class="icon-btn active" title="Always on Top / Pin on Top (Ctrl+Shift+T)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 17v5"></path>
+            <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Lock & Click-Through Mode -->
+        <button id="btnLockOverlay" class="icon-btn unlock-Interactive" title="Lock & Click-Through Mode (Ctrl+Shift+L)">
+          <svg id="iconUnlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+          </svg>
+          <svg id="iconLock" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </button>
+
+        <!-- Settings -->
+        <button id="btnSettings" class="icon-btn" title="Pengaturan & Koneksi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Minimize -->
+        <button id="btnMinimize" class="icon-btn" title="Minimize">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- Close -->
+        <button id="btnClose" class="icon-btn close-btn" title="Tutup Aplikasi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Click-Through Lock Floating Banner (shown when locked) -->
+    <div id="lockNotice" class="lock-notice hidden">
+      <span>Mode Click-Through Aktif (Ctrl+Shift+L atau klik gembok untuk buka)</span>
+    </div>
+
+    <!-- Settings Panel Drawer -->
+    <aside id="settingsDrawer" class="settings-drawer hidden">
+      <div class="settings-header">
+        <h3>Pengaturan & Koneksi Live</h3>
+        <button id="btnCloseSettings" class="icon-btn">✕</button>
+      </div>
+
+      <div class="settings-body">
+        <!-- Stream Connectivity (YouTube & TikTok) -->
+        <div class="setting-section">
+          <h4>Konektivitas Live Stream</h4>
+
+          <!-- YouTube Live Input -->
+          <div class="setting-row">
+            <label for="streamUrlInput">YouTube Live (URL / Video ID / <code>@channel</code>):</label>
+            <div class="input-group">
+              <span class="platform-tag yt" title="YouTube Live">YT</span>
+              <input
+                id="streamUrlInput"
+                type="text"
+                placeholder="https://youtube.com/live/... atau @channel"
+                autocomplete="off"
+              />
+              <button id="btnConnect" class="btn-primary">Connect</button>
+            </div>
+          </div>
+          <div class="connection-status-box">
+            YouTube: <strong id="ytStatusText">Belum Terhubung</strong>
+          </div>
+
+          <!-- TikTok Live Input -->
+          <div class="setting-row" style="margin-top: 4px;">
+            <label for="tiktokInput">TikTok Live (<code>@username</code> / URL Live):</label>
+            <div class="input-group">
+              <span class="platform-tag tt" title="TikTok Live">TT</span>
+              <input
+                id="tiktokInput"
+                type="text"
+                placeholder="@username atau tiktok.com/@user/live"
+                autocomplete="off"
+              />
+              <button id="btnConnectTiktok" class="btn-primary tt-btn">Connect</button>
+            </div>
+          </div>
+          <div class="connection-status-box">
+            TikTok: <strong id="ttStatusText">Belum Terhubung</strong>
+          </div>
+
+          <div class="setting-actions-row">
+            <button id="btnSimulate" class="btn-secondary" title="Kirim contoh chat simulasi YouTube & TikTok">
+              ▶ Tes Simulasi Chat
+            </button>
+            <button id="btnClearChat" class="btn-secondary danger" title="Bersihkan seluruh layar chat">
+              🗑 Clear Chat
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Kategori & Bot -->
+        <div class="setting-section">
+          <h4>Filter Kategori & Bot</h4>
+          <div class="setting-row">
+            <label>Tampilkan Kategori Chat:</label>
+            <div class="pill-group">
+              <button class="filter-pill active" data-filter="all">Semua Chat</button>
+              <button class="filter-pill" data-filter="vip">★ VIP / Mod / Member</button>
+              <button class="filter-pill" data-filter="superchat">$ Super Chat</button>
+            </div>
+          </div>
+          <div class="setting-toggle">
+            <input id="chkHideBots" type="checkbox" checked />
+            <label for="chkHideBots">Sembunyikan Pesan Bot (Nightbot, dll)</label>
+          </div>
+          <div class="setting-row">
+            <label for="botListInput">Daftar Nama Bot (pisahkan dengan koma):</label>
+            <input
+              id="botListInput"
+              type="text"
+              value="Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Wizebot, Stay_Hydrated_Bot"
+            />
+          </div>
+          <div class="setting-toggle">
+            <input id="chkHideCommands" type="checkbox" checked />
+            <label for="chkHideCommands">Sembunyikan Command (!lagu, !spec, dll)</label>
+          </div>
+        </div>
+
+        <!-- Overlay Appearance -->
+        <div class="setting-section">
+          <h4>Tampilan & Transparansi</h4>
+          <div class="setting-row">
+            <label for="opacityRange">Opasitas Background: <span id="opacityVal">82%</span></label>
+            <input id="opacityRange" type="range" min="10" max="100" value="82" />
+          </div>
+          <div class="setting-row">
+            <label for="fontSizeRange">Ukuran Font Chat: <span id="fontSizeVal">14px</span></label>
+            <input id="fontSizeRange" type="range" min="11" max="22" value="14" />
+          </div>
+          <div class="setting-toggle">
+            <input id="chkShowAvatars" type="checkbox" checked />
+            <label for="chkShowAvatars">Tampilkan Foto Profil (Avatar)</label>
+          </div>
+          <div class="setting-toggle">
+            <input id="chkShowTimestamp" type="checkbox" checked />
+            <label for="chkShowTimestamp">Tampilkan Waktu Chat (Timestamp)</label>
+          </div>
+          <div class="setting-toggle">
+            <input id="chkCompactMode" type="checkbox" />
+            <label for="chkCompactMode">Mode Rapat (Compact One-Line Chat)</label>
+          </div>
+          <div class="setting-toggle">
+            <input id="chkTextOutline" type="checkbox" checked />
+            <label for="chkTextOutline">Bayangan Teks Tajam (Anti-Samar saat Transparan)</label>
+          </div>
+        </div>
+
+        <!-- Audio & QoL -->
+        <div class="setting-section">
+          <h4>Suara & Pintasan</h4>
+          <div class="setting-toggle">
+            <input id="chkSoundSuperchat" type="checkbox" checked />
+            <label for="chkSoundSuperchat">Bunyi Notifikasi saat Super Chat / Member Baru</label>
+          </div>
+          <div class="setting-toggle">
+            <input id="chkSoundChat" type="checkbox" />
+            <label for="chkSoundChat">Bunyi Klik Halus setiap Chat Masuk</label>
+          </div>
+          <div class="shortcut-info">
+            <div><kbd>Ctrl+Shift+T</kbd> Toggle Pin on Top</div>
+            <div><kbd>Ctrl+Shift+L</kbd> Toggle Lock / Click-Through</div>
+            <div><kbd>Klik Pesan</kbd> Pin / Sematkan Chat di Atas</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Pinned Message Highlight Container -->
+    <div id="pinnedMessageBar" class="pinned-bar hidden">
+      <div class="pinned-header">
+        <span class="pinned-label">📌 PESAN DISEMATKAN</span>
+        <button id="btnUnpinMessage" class="unpin-btn" title="Lepas Sematan">✕</button>
+      </div>
+      <div id="pinnedMessageContent" class="pinned-content"></div>
+    </div>
+
+    <!-- Live Chat Stream Container -->
+    <main id="chatContainer" class="chat-container">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">💬</div>
+        <p class="empty-title">Siap Menampilkan Live Chat</p>
+        <p class="empty-desc">
+          Klik <b>Icon Koneksi</b> di kiri atas atau ikon <b>⚙ (Settings)</b> untuk menghubungkan YouTube Live maupun menjalankan <b>▶ Tes Simulasi Chat</b>.
+        </p>
+      </div>
+      <div id="chatList" class="chat-list"></div>
+    </main>
+
+    <!-- Auto-scroll Paused Indicator -->
+    <button id="btnResumeScroll" class="resume-scroll-btn hidden">
+      <span>⬇ Scroll terjeda (<span id="unreadCount">0</span> chat baru)</span>
+    </button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
